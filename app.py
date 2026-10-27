@@ -2,6 +2,7 @@
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
+from html import escape
 from urllib.parse import urlparse
 
 st.set_page_config(
@@ -13,7 +14,6 @@ st.set_page_config(
 # Espresso-only palette
 BG = "#17110F"
 SURFACE = "rgba(57, 39, 31, 0.72)"
-SURFACE2 = "rgba(73, 51, 41, 0.62)"
 TEXT = "#F7EEE5"
 MUTED = "#C7B3A4"
 BORDER = "rgba(226, 199, 177, 0.18)"
@@ -32,10 +32,21 @@ st.markdown(f"""
 
 .stApp {{
   background:
-    radial-gradient(ellipse at 8% 4%, #302019 0%, transparent 38%),
-    radial-gradient(ellipse at 92% 20%, #493126 0%, transparent 32%),
+    radial-gradient(ellipse at 18% 22%, rgba(108, 65, 43, .48), transparent 38%),
+    radial-gradient(ellipse at 78% 18%, rgba(105, 70, 50, .32), transparent 34%),
+    radial-gradient(ellipse at 72% 78%, rgba(74, 48, 38, .4), transparent 40%),
+    radial-gradient(ellipse at 14% 82%, rgba(57, 38, 31, .45), transparent 35%),
     {BG};
+  background-size: 140% 140%, 140% 140%, 140% 140%, 140% 140%, auto;
+  background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, center;
+  background-attachment: fixed;
+  animation: cp-ambient-drift 32s ease-in-out infinite alternate;
   color: {TEXT};
+}}
+
+@keyframes cp-ambient-drift {{
+  from {{ background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, center; }}
+  to {{ background-position: 8% 6%, 92% 8%, 92% 92%, 8% 94%, center; }}
 }}
 
 [data-testid="stHeader"],
@@ -44,9 +55,9 @@ st.markdown(f"""
 }}
 
 .block-container {{
-  max-width: 1080px;
-  padding-top: 1.4rem;
-  padding-bottom: 3rem;
+  max-width: 1160px;
+  padding-top: 1.8rem;
+  padding-bottom: 3.5rem;
 }}
 
 h1, h2, h3, p, label,
@@ -65,9 +76,22 @@ h1, h2, h3, p, label,
   padding: clamp(1.5rem, 5vw, 3rem);
   border: 1px solid rgba(255,255,255,.16);
   border-radius: 28px;
-  background: linear-gradient(125deg, #211511 0%, #493126 48%, #76513C 100%);
-  box-shadow: 0 20px 55px rgba(0,0,0,.28);
-  margin: .4rem 0 1.5rem;
+  background:
+    radial-gradient(ellipse at 90% 15%, rgba(238, 196, 159, .2), transparent 32%),
+    linear-gradient(125deg, rgba(33,21,17,.96) 0%, rgba(73,49,38,.96) 50%, rgba(104,70,51,.96) 100%);
+  box-shadow: 0 24px 64px rgba(0,0,0,.32);
+  margin: .5rem 0 1.8rem;
+}}
+
+.cp-hero::before {{
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  opacity: .14;
+  background-image: radial-gradient(rgba(255,244,232,.55) .7px, transparent .7px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(115deg, transparent 10%, #000 100%);
 }}
 
 .cp-hero::after {{
@@ -82,6 +106,13 @@ h1, h2, h3, p, label,
   border: 1px solid rgba(255,255,255,.17);
   box-shadow: 0 0 0 28px rgba(255,255,255,.045),
               0 0 0 58px rgba(255,255,255,.035);
+  animation: cp-orbit-breathe 12s ease-in-out infinite alternate;
+  will-change: transform;
+}}
+
+@keyframes cp-orbit-breathe {{
+  from {{ transform: translate3d(0, 0, 0) scale(.96); opacity: .72; }}
+  to {{ transform: translate3d(-10px, 8px, 0) scale(1.04); opacity: 1; }}
 }}
 
 .cp-eyebrow {{
@@ -98,7 +129,7 @@ h1, h2, h3, p, label,
   line-height: 1.04;
   font-weight: 850;
   letter-spacing: -.045em;
-  margin: .7rem 0;
+  margin: .65rem 0 .55rem;
 }}
 
 .cp-hero-copy {{
@@ -119,15 +150,106 @@ h1, h2, h3, p, label,
   font-size: .82rem;
 }}
 
-.cp-panel {{
-  background: {SURFACE};
+.cp-section-kicker {{
+  color: {ACCENT};
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin: 0 0 .25rem;
+}}
+
+.cp-trust-note {{
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .8rem 1rem;
   border: 1px solid {BORDER};
-  border-radius: 20px;
-  padding: clamp(1rem, 3vw, 1.6rem);
-  box-shadow: 0 14px 35px rgba(0,0,0,.18);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  margin: .6rem 0 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,.035);
+  color: {MUTED};
+  font-size: .86rem;
+  line-height: 1.6;
+  margin: .85rem 0 0;
+}}
+
+.cp-result-card {{
+  padding: 1.2rem;
+  border: 1px solid {BORDER};
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(73,51,41,.52), rgba(43,30,24,.55));
+  margin: .75rem 0 1rem;
+}}
+
+.cp-result-heading {{
+  color: {TEXT};
+  font-size: 1.08rem;
+  font-weight: 750;
+  margin: 0 0 .9rem;
+}}
+
+.cp-result-topline {{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .85rem;
+}}
+
+.cp-result-topline .cp-result-heading {{
+  margin: 0;
+}}
+
+.cp-status-pill {{
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: .38rem .72rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: .79rem;
+  font-weight: 750;
+  line-height: 1.35;
+}}
+
+.cp-result-copy {{
+  color: {MUTED};
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}}
+
+.cp-result-copy strong {{
+  display: block;
+  color: {TEXT};
+  font-size: .76rem;
+  letter-spacing: .08em;
+  margin: 1rem 0 .35rem;
+  text-transform: uppercase;
+}}
+
+.cp-field-grid {{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .7rem;
+  margin-top: 1rem;
+}}
+
+.cp-field {{
+  min-width: 0;
+  padding: .85rem .95rem;
+  border: 1px solid {BORDER};
+  border-radius: 13px;
+  background: rgba(255,255,255,.035);
+}}
+
+.cp-field .cp-label {{
+  margin-bottom: .4rem;
+}}
+
+.cp-value {{
+  color: {TEXT};
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }}
 
 .cp-label {{
@@ -139,15 +261,6 @@ h1, h2, h3, p, label,
   margin-bottom: .35rem;
 }}
 
-.cp-value {{
-  color: {TEXT};
-  background: {SURFACE2};
-  border: 1px solid {BORDER};
-  padding: .7rem .85rem;
-  border-radius: 12px;
-  overflow-wrap: anywhere;
-}}
-
 .cp-muted {{
   color: {MUTED};
   text-align: center;
@@ -156,41 +269,31 @@ h1, h2, h3, p, label,
   padding: 1.2rem .5rem;
 }}
 
-/* Tabs and active underline: force the mocha accent. */
-[data-testid="stTabs"] [data-baseweb="tab-list"] {{
-  gap: .45rem !important;
-  border-bottom: 1px solid {BORDER} !important;
-}}
-
-[data-testid="stTabs"] button[data-baseweb="tab"] {{
-  color: {MUTED} !important;
-  border-radius: 12px 12px 0 0 !important;
-  font-weight: 700 !important;
-  border-bottom: 2px solid transparent !important;
-  box-shadow: none !important;
-}}
-
-[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {{
-  color: {ACCENT} !important;
-  background: rgba(214,167,131,.10) !important;
-  border-bottom: 2px solid {ACCENT} !important;
-  box-shadow: inset 0 -2px 0 {ACCENT} !important;
-}}
-
-[data-testid="stTabs"] [data-baseweb="tab-highlight"],
-[data-testid="stTabs"] [data-baseweb="tab-border"],
-[data-testid="stTabs"] [data-baseweb="tab-list"] > div[role="presentation"] {{
-  background: {ACCENT} !important;
-  background-color: {ACCENT} !important;
-  border-color: {ACCENT} !important;
-  color: {ACCENT} !important;
-}}
-
-[data-testid="stTabs"] [data-baseweb="tab-panel"] {{
-  padding-top: 1.3rem;
+[data-testid="stDecoration"] {{
+  display: none !important;
 }}
 
 /* Primary buttons */
+[data-testid="stButton"] button {{
+  min-height: 3rem;
+  border-radius: 14px !important;
+  font-weight: 750 !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}}
+
+[data-testid="stButton"] button:not([kind="primary"]) {{
+  color: {TEXT} !important;
+  background: rgba(57, 39, 31, .76) !important;
+  border: 1px solid {BORDER} !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.12);
+}}
+
+[data-testid="stButton"] button:not([kind="primary"]):hover {{
+  color: {ACCENT_HOVER} !important;
+  background: rgba(73, 51, 41, .9) !important;
+  border-color: rgba(226,199,177,.34) !important;
+}}
+
 [data-testid="stFormSubmitButton"] button,
 [data-testid="stLinkButton"] a,
 .stButton button[kind="primary"],
@@ -207,6 +310,7 @@ button[kind="primary"] {{
 }}
 
 [data-testid="stFormSubmitButton"] button:hover,
+[data-testid="stButton"] button[kind="primary"]:hover,
 [data-testid="stLinkButton"] a:hover,
 .stButton button[kind="primary"]:hover,
 button[kind="primary"]:hover {{
@@ -218,6 +322,7 @@ button[kind="primary"]:hover {{
 }}
 
 [data-testid="stFormSubmitButton"] button p,
+[data-testid="stButton"] button[kind="primary"] p,
 [data-testid="stLinkButton"] a p,
 button[kind="primary"] p {{
   color: {ACCENT_TEXT} !important;
@@ -235,6 +340,21 @@ button[kind="primary"] p {{
 [data-baseweb="input"] input,
 [data-baseweb="textarea"] textarea {{
   color: {TEXT} !important;
+}}
+
+[data-baseweb="input"] > div:focus-within,
+[data-baseweb="textarea"] > div:focus-within,
+[data-baseweb="select"] > div:focus-within {{
+  border-color: {ACCENT} !important;
+  box-shadow: 0 0 0 2px rgba(214,167,131,.2) !important;
+}}
+
+[data-testid="stButton"] button:focus-visible,
+[data-testid="stFormSubmitButton"] button:focus-visible,
+[data-testid="stLinkButton"] a:focus-visible,
+button:focus-visible {{
+  outline: 3px solid {ACCENT_HOVER} !important;
+  outline-offset: 3px !important;
 }}
 
 [data-testid="stForm"] {{
@@ -267,13 +387,24 @@ hr {{
   .cp-hero-copy {{
     font-size: .94rem;
   }}
-  [data-testid="stTabs"] [data-baseweb="tab-list"] {{
-    gap: .05rem !important;
+  .cp-field-grid {{
+    grid-template-columns: 1fr;
   }}
-  [data-testid="stTabs"] button[data-baseweb="tab"] {{
-    padding-left: .45rem;
-    padding-right: .45rem;
-    font-size: .78rem;
+  [data-testid="stButton"] button {{
+    min-height: 3.2rem;
+    font-size: .9rem;
+  }}
+}}
+
+@media (prefers-reduced-motion: reduce) {{
+  *,
+  *::before,
+  *::after {{
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    will-change: auto !important;
   }}
 }}
 </style>
@@ -381,6 +512,10 @@ def status_colour(status):
 
 
 # ── Hero ────────────────────────────────────────────────────
+def select_portal_section(section):
+    st.session_state["portal_section"] = section
+
+
 st.markdown("""
 <div class="cp-hero">
   <div class="cp-eyebrow">Student support · Campus community</div>
@@ -398,12 +533,31 @@ try:
 except Exception:
     form_url = ""
 
-track_tab, register_tab = st.tabs([
-    "🔎 Track my complaint",
-    "📝 Register new complaint",
-])
+if "portal_section" not in st.session_state:
+    st.session_state["portal_section"] = "track"
 
-with track_tab:
+nav_track, nav_register = st.columns(2, gap="small")
+with nav_track:
+    st.button(
+        "🔎  Track my complaint",
+        key="track_section_button",
+        type="primary" if st.session_state["portal_section"] == "track" else "secondary",
+        use_container_width=True,
+        on_click=select_portal_section,
+        args=("track",),
+    )
+with nav_register:
+    st.button(
+        "📝  Register a complaint",
+        key="register_section_button",
+        type="primary" if st.session_state["portal_section"] == "register" else "secondary",
+        use_container_width=True,
+        on_click=select_portal_section,
+        args=("register",),
+    )
+
+if st.session_state["portal_section"] == "track":
+    st.markdown('<div class="cp-section-kicker">Your report, at a glance</div>', unsafe_allow_html=True)
     st.subheader("Track your complaint")
     st.caption("Enter the ticket ID you received after submitting your complaint.")
 
@@ -417,6 +571,12 @@ with track_tab:
         submitted = st.form_submit_button(
             "Search ticket", type="primary", use_container_width=True
         )
+
+    st.markdown(
+        '<div class="cp-trust-note"><span>🔒</span><span>Your lookup only shows '
+        'student-facing details for the matching ticket. Keep your ticket ID private.</span></div>',
+        unsafe_allow_html=True,
+    )
 
     if submitted:
         if not ticket_id:
@@ -444,26 +604,10 @@ with track_tab:
                         ("Submitted", columns.get("submitted_at", "Timestamp"), ("Submitted At", "Submission Date", "Created At")),
                     ]
 
-                    st.subheader("Complaint details")
-
                     actual_status = safe_field(
                         row, headers, columns.get("status", "Status"),
                         ("Current Status", "Ticket Status"),
                     )
-
-                    if actual_status:
-                        colour = status_colour(actual_status)
-                        st.markdown(
-                            f'<span style="display:inline-block;background:{colour};color:#fff;'
-                            f'padding:.4rem .8rem;border-radius:999px;font-weight:700;">'
-                            f'{actual_status}</span>',
-                            unsafe_allow_html=True,
-                        )
-                        st.write("")
-                    else:
-                        st.info(
-                            "A status field is not currently available in the configured worksheet."
-                        )
 
                     visible = []
                     for label, configured_name, aliases in display_fields:
@@ -481,26 +625,47 @@ with track_tab:
                         ("Resolution Note", "Latest Update", "Admin Note"),
                     )
 
-                    if summary:
-                        st.markdown("**Complaint summary**")
-                        st.write(summary)
+                    status_html = ""
+                    if actual_status:
+                        status_html = (
+                            f'<span class="cp-status-pill" style="background:{status_colour(actual_status)}">'
+                            f'{escape(actual_status)}</span>'
+                        )
 
-                    left, right = st.columns(2)
-                    for index, (label, value) in enumerate(visible):
-                        with (left if index % 2 == 0 else right):
-                            st.markdown(
-                                f'<div class="cp-label">{label}</div>',
-                                unsafe_allow_html=True,
-                            )
-                            st.markdown(
-                                f'<div class="cp-value">{value}</div>',
-                                unsafe_allow_html=True,
-                            )
-                            st.write("")
-
-                    if update_note:
-                        st.markdown("**Latest update**")
-                        st.write(update_note)
+                    fields_html = "".join(
+                        '<div class="cp-field">'
+                        f'<div class="cp-label">{escape(label)}</div>'
+                        f'<div class="cp-value">{escape(value)}</div>'
+                        '</div>'
+                        for label, value in visible
+                    )
+                    summary_html = (
+                        f'<div class="cp-result-copy"><strong>Complaint summary</strong>'
+                        f'{escape(summary)}</div>'
+                        if summary else ""
+                    )
+                    update_html = (
+                        f'<div class="cp-result-copy"><strong>Latest update</strong>'
+                        f'{escape(update_note)}</div>'
+                        if update_note else ""
+                    )
+                    status_note_html = (
+                        '<div class="cp-result-copy">A status field is not currently '
+                        'available in the configured worksheet.</div>'
+                        if not actual_status else ""
+                    )
+                    st.markdown(
+                        '<div class="cp-result-card">'
+                        '<div class="cp-result-topline">'
+                        '<div class="cp-result-heading">Complaint details</div>'
+                        f'{status_html}</div>'
+                        f'{status_note_html}'
+                        f'{summary_html}'
+                        f'<div class="cp-field-grid">{fields_html}</div>'
+                        f'{update_html}'
+                        '</div>',
+                        unsafe_allow_html=True,
+                    )
 
                     if match_count > 1:
                         st.warning(
@@ -518,7 +683,8 @@ with track_tab:
                     "and Streamlit secrets."
                 )
 
-with register_tab:
+else:
+    st.markdown('<div class="cp-section-kicker">Make campus better</div>', unsafe_allow_html=True)
     st.subheader("Raise a campus concern")
     st.write(
         "Share your concern through the official form. Once you submit it, keep the "
@@ -538,7 +704,6 @@ with register_tab:
 
 st.divider()
 st.markdown(
-    '<div class="cp-muted">CampusPulse · Student portal · '
-    'For urgent or immediate safety risks, contact campus authorities directly.</div>',
+    '<div class="cp-muted">CampusPulse · Student portal</div>',
     unsafe_allow_html=True,
 )

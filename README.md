@@ -3,7 +3,7 @@
 This small app provides:
 - Ticket lookup by ticket ID from a private Google Sheet.
 - A link to the existing Google Form for new complaints.
-- A minimal responsive student-facing interface using Espresso & Persimmon colours.
+- A polished, responsive student portal using Espresso & Persimmon colours.
 
 ## 1. Important before launch
 The app is read-only for Google Sheets. It does not modify your n8n workflows or write to the spreadsheet.
