@@ -1,9 +1,11 @@
 
-import streamlit as st
-import gspread
-from google.oauth2.service_account import Credentials
+from datetime import datetime
 from html import escape
 from urllib.parse import urlparse
+
+import gspread
+import streamlit as st
+from google.oauth2.service_account import Credentials
 
 st.set_page_config(
     page_title="CampusPulse | Student Portal",
@@ -452,6 +454,36 @@ def clean(value):
     return "" if value is None else str(value).strip()
 
 
+def format_timestamp(value):
+    timestamp = clean(value)
+    if not timestamp:
+        return ""
+
+    try:
+        parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError:
+        parsed = None
+        for date_format in (
+            "%d/%m/%Y %H:%M:%S",
+            "%d/%m/%Y %H:%M",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+        ):
+            try:
+                parsed = datetime.strptime(timestamp, date_format)
+                break
+            except ValueError:
+                continue
+
+    if parsed is None:
+        return timestamp
+
+    formatted = parsed.strftime("%d %b %Y at %I:%M %p").replace(" at 0", " at ")
+    if parsed.utcoffset() is not None:
+        formatted += f" ({parsed.strftime('%Z')})"
+    return formatted
+
+
 def normalise_header(value):
     return "".join(ch.lower() for ch in clean(value) if ch.isalnum())
 
@@ -519,6 +551,13 @@ def status_colour(status):
     if any(word in s for word in ("progress", "acknow", "review")):
         return "#95664F"
     return "#81756D"
+
+
+def is_resolved_status(status):
+    normalised = normalise_header(status)
+    return normalised.startswith(
+        ("resolved", "closed", "completed", "complete", "fixed", "done")
+    )
 
 
 # ── Hero ────────────────────────────────────────────────────
@@ -630,9 +669,13 @@ if st.session_state["portal_section"] == "track":
                         ("Complaint Summary", "Description", "Report Text", "Complaint"),
                     )
 
-                    update_note = safe_field(
+                    resolution_note = safe_field(
                         row, headers, columns.get("resolution_note", "Resolution_Note"),
-                        ("Resolution Note", "Latest Update", "Admin Note"),
+                        ("Resolution Notes", "Resolution Note", "Latest Update"),
+                    )
+                    resolved_at = safe_field(
+                        row, headers, columns.get("resolved_at", "Resolved_At"),
+                        ("Resolved At", "Resolution Date", "Completed At", "Closed At"),
                     )
 
                     status_html = ""
@@ -654,11 +697,28 @@ if st.session_state["portal_section"] == "track":
                         f'{escape(summary)}</div>'
                         if summary else ""
                     )
-                    update_html = (
-                        f'<div class="cp-result-copy"><strong>Latest update</strong>'
-                        f'{escape(update_note)}</div>'
-                        if update_note else ""
-                    )
+                    resolution_html = ""
+                    latest_update_html = ""
+                    if is_resolved_status(actual_status):
+                        resolution_note_value = (
+                            escape(resolution_note)
+                            if resolution_note else "No resolution notes are available."
+                        )
+                        resolved_at_value = (
+                            escape(format_timestamp(resolved_at))
+                            if resolved_at else "Not provided"
+                        )
+                        resolution_html = (
+                            '<div class="cp-result-copy"><strong>Resolution notes</strong>'
+                            f'{resolution_note_value}</div>'
+                            '<div class="cp-result-copy"><strong>Resolved at</strong>'
+                            f'{resolved_at_value}</div>'
+                        )
+                    elif resolution_note:
+                        latest_update_html = (
+                            f'<div class="cp-result-copy"><strong>Latest update</strong>'
+                            f'{escape(resolution_note)}</div>'
+                        )
                     status_note_html = (
                         '<div class="cp-result-copy">A status field is not currently '
                         'available in the configured worksheet.</div>'
@@ -672,7 +732,8 @@ if st.session_state["portal_section"] == "track":
                         f'{status_note_html}'
                         f'{summary_html}'
                         f'<div class="cp-field-grid">{fields_html}</div>'
-                        f'{update_html}'
+                        f'{resolution_html}'
+                        f'{latest_update_html}'
                         '</div>',
                         unsafe_allow_html=True,
                     )

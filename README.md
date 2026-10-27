@@ -37,7 +37,11 @@ streamlit run app.py
 4. Share the existing `CampusPulse_Database` spreadsheet with the service account's `client_email` as a Viewer.
 5. Put the spreadsheet ID (the value between `/d/` and `/edit` in its URL) into `spreadsheet_id`.
 6. Set `worksheet_name` to the exact ticket worksheet name, usually `Tickets`.
-7. Map every field under `[columns]` to the exact headers in the worksheet.
+7. Map every field under `[columns]` to the exact headers in the worksheet. Set
+   `resolution_note` to the student-facing notes column (default: `Resolution_Notes`)
+   and `resolved_at` to the resolution timestamp column (default: `Resolved_At`);
+   common timestamp alternatives such as `Resolved At`, `Resolution Date`,
+   `Completed At`, and `Closed At` are also recognized.
 8. Paste the service-account fields into `[gcp_service_account]` in `secrets.toml`.
 
 Use read-only access only for the student app. Do not make the spreadsheet public.
@@ -51,6 +55,8 @@ Use read-only access only for the student app. Do not make the spreadsheet publi
 
 ## 5. Exact headers matter
 The default mappings are examples. Change them to match the actual header row of the `Tickets` worksheet. The code attempts common aliases, but the exact mapping is the safest choice.
+When a ticket status is resolved, closed, completed, fixed, or done, the student view
+shows its resolution notes and a formatted resolved timestamp when those values are present.
 
 ## Troubleshooting
 - `SpreadsheetNotFound`: the spreadsheet ID is wrong, or the spreadsheet was not shared with the service account.
