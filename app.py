@@ -125,11 +125,21 @@ h1, h2, h3, p, label,
 
 .cp-hero-title {{
   color: #FFF8F1 !important;
+  background: linear-gradient(100deg, #FFF8F1 8%, #F0D3B7 52%, #D6A783 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: clamp(2.4rem, 7vw, 4rem);
   line-height: 1.04;
   font-weight: 850;
   letter-spacing: -.045em;
   margin: .65rem 0 .55rem;
+}}
+
+@supports not (-webkit-background-clip: text) {{
+  .cp-hero-title {{
+    color: #F0D3B7 !important;
+  }}
 }}
 
 .cp-hero-copy {{
